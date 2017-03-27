@@ -1,6 +1,6 @@
 package com.aifeii.scanLanIP.util;
 
-import com.sun.istack.internal.NotNull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by JiaMing.Luo on 2017/3/24.

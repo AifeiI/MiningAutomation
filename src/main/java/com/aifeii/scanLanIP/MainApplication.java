@@ -39,6 +39,7 @@ public class MainApplication {
         int size = args.length;
         if (size == 0) {
             // 打印帮助信息
+            System.out.println(printHelp());
             return;
         }
         // 提取参数
@@ -73,6 +74,7 @@ public class MainApplication {
                 case "-h":
                 default:
                     // 打印帮助信息
+                    System.out.println(printHelp());
                     return;
             }
             i++;
@@ -124,6 +126,10 @@ public class MainApplication {
             bufferedWriter.flush();
             bufferedWriter.close();
             fileWriter.close();
+
+            if (outputFile.exists()) {
+                System.out.println("清单已导出：" + outputFile.getPath());
+            }
         } else {
             effectiveList.parallelStream()
                     .forEach(System.out::println);
@@ -138,4 +144,14 @@ public class MainApplication {
         factory.shutdown();
     }
 
+    private static String printHelp() {
+        String helpString = "HELP: \n" +
+                "--file    / -f: 从文件中读取矿场地址，格式 ./file 或者 /path/file\n" +
+                "--ip      / -i: 直接输入矿场地址，格式 0.0.0.0\n" +
+                "--ips     / -s: 批量直接输入矿场地址，格式 0.0.0.0/32\n" +
+                "--filter  / -t: 过滤输出，格式 www.google.com\n" +
+                "--out     / -o: 输出结果到文件，格式 ./file 或者 /path/file\n" +
+                "--help    / -h: 帮助";
+        return helpString;
+    }
 }
