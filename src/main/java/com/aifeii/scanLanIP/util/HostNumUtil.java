@@ -7,9 +7,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public class HostNumUtil {
 
-    public static int[] getStartHostIP(@NotNull String networkSegment, int subnetMask) {
+    public static int[] getStartHostIP(@NotNull String networkSegment, int subnetMask) throws IllegalArgumentException {
         // 转换格式
-        int[] num = formatNetworkSegment(networkSegment);
+        int[] num = formatNetworkSegmentByIPv4(networkSegment);
 
         if (!checkMark(subnetMask)) {
             throw new IllegalArgumentException("掩码格式不正确：" + subnetMask);
@@ -21,35 +21,15 @@ public class HostNumUtil {
         return num;
     }
 
-    public static int[] formatNetworkSegment(@NotNull String networkSegment) {
-        // 参数校验
-        if (networkSegment.equals("")) {
-            throw new IllegalArgumentException("网段格式不正确：" + networkSegment);
-        }
-        String[] nsSplits = networkSegment.split("\\.");
-        if (nsSplits.length < 4 || nsSplits.length > 4) {
-            throw new IllegalArgumentException("网段格式不正确：" + networkSegment);
-        }
-        int[] result = new int[4];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = Integer.parseInt(nsSplits[i]);
-            if (result[i] < 0 || result[i] > 255) {
-                throw new IllegalArgumentException("网段格式不正确：" + networkSegment);
-            }
-        }
-        return result;
-    }
-
     public static long countHost(@NotNull String networkSegment, int subnetMask) {
         // 转换格式
-        int[] num = formatNetworkSegment(networkSegment);
+        int[] num = formatNetworkSegmentByIPv4(networkSegment);
 
         if (!checkMark(subnetMask)) {
             throw new IllegalArgumentException("掩码格式不正确：" + subnetMask);
         }
 
         // 计算可分配主机数
-
         StringBuilder biys = new StringBuilder();
         for (int i : num) {
             String iString = convertBinary(i);
@@ -70,13 +50,38 @@ public class HostNumUtil {
         }
         String max = maxSB.toString();
 
-        long count = convertAlgorithm(max) - convertAlgorithm(min) - 1;
-
-        return count;
+        return convertAlgorithm(max) - convertAlgorithm(min) - 1;
     }
 
+    public static int[] formatNetworkSegmentByIPv4(@NotNull String networkSegment) throws IllegalArgumentException {
+        // 参数校验
+        if (networkSegment.equals("")) {
+            // 不可为空字符
+            throw new IllegalArgumentException("网段格式不正确：" + networkSegment);
+        }
+        String[] nsSplits = networkSegment.split("\\.");
+        if (nsSplits.length != 4) {
+            // ipv4 格式拼写错误
+            throw new IllegalArgumentException("网段格式不正确：" + networkSegment);
+        }
+        int[] result = new int[4];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = Integer.parseInt(nsSplits[i]);
+            if (result[i] < 0 || result[i] > 255) {
+                // 数值不在 0 - 255 之间
+                throw new IllegalArgumentException("网段格式不正确：" + networkSegment);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 检查子网掩码格式
+     * @param subnetMask
+     * @return
+     */
     public static boolean checkMark(int subnetMask) {
-        return !(subnetMask < 1 || subnetMask > 32);
+        return 1 <= subnetMask && subnetMask <= 32;
     }
 
     /**

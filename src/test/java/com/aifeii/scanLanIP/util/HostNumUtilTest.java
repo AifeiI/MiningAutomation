@@ -17,11 +17,17 @@ public class HostNumUtilTest {
 
     @Test
     public void formatNetworkSegment() throws Exception {
-        int[] s = new int[]{192, 168, 1, 1};
+        int[] s1 = new int[]{192, 168, 1, 1};
 
-        int[] ipNums = HostNumUtil.formatNetworkSegment("192.168.1.1");
-        assertNotNull(ipNums);
-        assertArrayEquals(s, ipNums);
+        int[] ipNums1 = HostNumUtil.formatNetworkSegmentByIPv4("192.168.1.1");
+        assertNotNull(ipNums1);
+        assertArrayEquals(s1, ipNums1);
+
+        int[] s2 = new int[]{192, 168, 0, 0};
+
+        int[] ipNums2 = HostNumUtil.formatNetworkSegmentByIPv4("192.168.0.0");
+        assertNotNull(ipNums2);
+        assertArrayEquals(s2, ipNums2);
     }
 
     @Test

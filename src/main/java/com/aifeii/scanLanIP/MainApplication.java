@@ -88,6 +88,7 @@ public class MainApplication {
 
         // 启动工厂
         for (String ip : ips) {
+            // 建立前往矿洞的路线
             factory.start(ip);
         }
 
@@ -107,8 +108,10 @@ public class MainApplication {
         String finalFilterTarget = filterTarget;
         List<RemoteHostInfo> effectiveList = list.parallelStream()
                 .filter(RemoteHostInfo::isNotEmpty)
-                .filter(remoteHostInfo -> finalFilterTarget == null || finalFilterTarget.equals("") ||
-                        remoteHostInfo.getName().equals(finalFilterTarget))
+                .filter(remoteHostInfo ->
+                        finalFilterTarget == null ||
+                                finalFilterTarget.equals("") ||
+                                remoteHostInfo.getName().equals(finalFilterTarget))
                 .collect(Collectors.toList());
         // 打印清单
         if (outputPath != null) {
@@ -136,22 +139,22 @@ public class MainApplication {
         }
 
         // 打印任务统计
-        System.out.println("矿洞总数：" + list.size() +
+        System.out.println(
+                "矿洞总数：" + list.size() +
                 "，有产出矿洞总数：" + surviveCount +
-                "，过滤[" + filterTarget + "]后总数：" + effectiveList.size());
+                "，过滤 [" + filterTarget + "] 后总数：" + effectiveList.size());
 
         // 关闭工厂
         factory.shutdown();
     }
 
     private static String printHelp() {
-        String helpString = "HELP: \n" +
+        return "HELP: \n" +
                 "--file    / -f: 从文件中读取矿场地址，格式 ./file 或者 /path/file\n" +
                 "--ip      / -i: 直接输入矿场地址，格式 0.0.0.0\n" +
                 "--ips     / -s: 批量直接输入矿场地址，格式 0.0.0.0/32\n" +
                 "--filter  / -t: 过滤输出，格式 www.google.com\n" +
                 "--out     / -o: 输出结果到文件，格式 ./file 或者 /path/file\n" +
                 "--help    / -h: 帮助";
-        return helpString;
     }
 }

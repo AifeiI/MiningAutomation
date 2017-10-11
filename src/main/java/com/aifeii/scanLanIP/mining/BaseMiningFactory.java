@@ -79,12 +79,18 @@ public abstract class BaseMiningFactory<T extends Mineral> implements MiningFact
             if (sp.length == 2) {
                 String ips = sp[0];
                 int mark = Integer.parseInt(sp[1]);
-
-                ipNum = HostNumUtil.getStartHostIP(ips, mark);
-                count = HostNumUtil.countHost(ips, mark);
+                try {
+                    // 矿场编号
+                    ipNum = HostNumUtil.getStartHostIP(ips, mark);
+                    // 判断矿场有几个矿洞
+                    count = HostNumUtil.countHost(ips, mark);
+                } catch (IllegalArgumentException e) {
+                    // 格式错误
+                    e.printStackTrace();
+                    return;
+                }
             } else {
                 // 参数错误
-
                 return;
             }
         } else {
@@ -140,13 +146,15 @@ public abstract class BaseMiningFactory<T extends Mineral> implements MiningFact
 
     @Override
     public void shutdown() {
+        // 关闭矿场
         tubCenter.shutdownNow();
         try {
+            // 等待 10 秒
             tubCenter.awaitTermination(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
+        // 收回矿车
         warehouse.clear();
     }
 }

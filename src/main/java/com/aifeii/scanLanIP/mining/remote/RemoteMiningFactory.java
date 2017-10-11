@@ -10,7 +10,14 @@ import com.aifeii.scanLanIP.model.Tub;
  */
 public class RemoteMiningFactory extends BaseMiningFactory<RemoteHostInfo> {
 
+    /**
+     * 矿车类型：HTTPs
+     */
     public static final int TUB_TYPE_HTTPS = 1;
+
+    /**
+     * 矿车类型：SSL Socket
+     */
     public static final int TUB_TYPE_SSL_SOCKET = 2;
 
     /**

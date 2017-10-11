@@ -40,6 +40,7 @@ public class AssemblyLine<T> implements Runnable {
             // 运输
             if (host == null) {
                 System.out.println("空矿洞 [" + address + "]");
+                return;
             }
             truck.onDischarge(host);
         }
