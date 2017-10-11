@@ -41,7 +41,6 @@ public class HostNumUtilTest {
     public void convertAlgorithm() throws Exception {
         String input = "11111111";
         long result = HostNumUtil.convertAlgorithm(input);
-        assertNotNull(result);
         assertEquals(255, result);
     }
 
@@ -53,7 +52,6 @@ public class HostNumUtilTest {
 
         long result = HostNumUtil.countHost(w, m);
 
-        assertNotNull(result);
         assertEquals(254, result);
 
         String w2 = "192.168.1.56";
@@ -61,7 +59,6 @@ public class HostNumUtilTest {
 
         long result2 = HostNumUtil.countHost(w2, m2);
 
-        assertNotNull(result2);
         assertEquals(198, result2);
 
         String w3 = "192.168.0.0";
@@ -69,7 +66,6 @@ public class HostNumUtilTest {
 
         long result3 = HostNumUtil.countHost(w3, m3);
 
-        assertNotNull(result3);
         assertEquals(65534, result3);
     }
 
