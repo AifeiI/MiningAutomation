@@ -14,10 +14,6 @@ public class HostNumUtil {
         if (!checkMark(subnetMask)) {
             throw new IllegalArgumentException("掩码格式不正确：" + subnetMask);
         }
-
-        if (num[3] == 0) {
-            num[3] = 1;
-        }
         return num;
     }
 

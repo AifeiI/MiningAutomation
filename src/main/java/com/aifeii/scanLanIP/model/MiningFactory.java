@@ -1,6 +1,6 @@
 package com.aifeii.scanLanIP.model;
 
-import java.util.List;
+import io.reactivex.Flowable;
 
 /**
  * 矿业工厂
@@ -15,19 +15,6 @@ public interface MiningFactory<T extends Mineral> {
      * @param target 矿场地址
      * @throws Exception 运作异常
      */
-    void start(String target) throws Exception;
+    Flowable<T> start(String... target) throws Exception;
 
-    /**
-     * 查看仓库
-     *
-     * @return
-     */
-    List<T> viewWarehouse();
-
-    /**
-     * 停止运作
-     *
-     * @throws Exception 停止异常
-     */
-    void shutdown() throws Exception;
 }

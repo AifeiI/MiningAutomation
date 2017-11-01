@@ -5,12 +5,12 @@ package com.aifeii.scanLanIP.model;
  *
  * Created by JiaMing.Luo on 2017/3/24.
  */
-public interface Truck<T> {
+public interface Truck<T extends Mineral> {
 
     /**
      * 卸货
-     * @param t 货物
+     * @param mineral 货物
      */
-    void onDischarge(T t);
+    void onDischarge(T mineral);
 
 }

@@ -1,15 +1,17 @@
 package com.aifeii.scanLanIP.mining.local;
 
 import com.aifeii.scanLanIP.model.Tub;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 /**
  * Created by JiaMing.Luo on 2017/3/22.
  */
 public class LocalTub implements Tub<LocalHostInfo> {
 
+    @NotNull
     @Override
     public LocalHostInfo onDig(String ip) {
         try {
@@ -19,9 +21,7 @@ public class LocalTub implements Tub<LocalHostInfo> {
             if (isReachable) {
                 return new LocalHostInfo(inetAddress.getHostName(), ip, "", true);
             }
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return new LocalHostInfo(ip);

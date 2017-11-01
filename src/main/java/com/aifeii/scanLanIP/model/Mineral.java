@@ -1,7 +1,7 @@
 package com.aifeii.scanLanIP.model;
 
 /**
- * 主机
+ * 矿产
  *
  * Created by JiaMing.Luo on 2017/3/24.
  */

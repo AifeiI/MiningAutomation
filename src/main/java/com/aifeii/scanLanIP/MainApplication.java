@@ -1,10 +1,15 @@
 package com.aifeii.scanLanIP;
 
+import com.aifeii.scanLanIP.mining.remote.HttpsTub;
 import com.aifeii.scanLanIP.mining.remote.RemoteHostInfo;
 import com.aifeii.scanLanIP.mining.remote.RemoteMiningFactory;
+import io.reactivex.FlowableSubscriber;
+import org.reactivestreams.Subscription;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 /**
@@ -13,6 +18,16 @@ import java.util.stream.Collectors;
  * Created by JiaMing.Luo on 2017/3/22.
  */
 public class MainApplication {
+
+    private static String[] mIPs;
+    private static HttpsTub mHttpsTub;
+
+    private static String mFilterTarget = "";
+    private static String mOutputPath = null;
+
+    private static CountDownLatch mCountDownLatch;
+    private static List<RemoteHostInfo> mMineralList;
+    private static Subscription mSubscription;
 
     /**
      * java -jar Mining.jar [COMMAND] value
@@ -32,10 +47,6 @@ public class MainApplication {
      */
     public static void main(String[] args) throws Exception {
 
-        String[] ips = new String[0];
-        String filterTarget = "";
-        String outputPath = null;
-
         int size = args.length;
         if (size == 0) {
             // 打印帮助信息
@@ -50,24 +61,24 @@ public class MainApplication {
                     File file = new File(args[i + 1]);
                     BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
                     List<String> ipList = bufferedReader.lines().collect(Collectors.toList());
-                    ips = ipList.toArray(new String[ipList.size()]);
+                    mIPs = ipList.toArray(new String[ipList.size()]);
                     break;
 
                 case "--ip":
                 case "-i":
                 case "--ips":
                 case "-s":
-                    ips = new String[]{args[i + 1]};
+                    mIPs = new String[]{args[i + 1]};
                     break;
 
                 case "--filter":
                 case "-t":
-                    filterTarget = args[i + 1];
+                    mFilterTarget = args[i + 1];
                     break;
 
                 case "--out":
                 case "-o":
-                    outputPath = args[i + 1];
+                    mOutputPath = args[i + 1];
                     break;
 
                 case "--help":
@@ -80,72 +91,94 @@ public class MainApplication {
             i++;
         }
 
-        // 创建工厂
-        RemoteMiningFactory factory = new RemoteMiningFactory(RemoteMiningFactory.TUB_TYPE_HTTPS);
+        mMineralList = new ArrayList<>();
+        mHttpsTub = new HttpsTub();
 
+        mCountDownLatch = new CountDownLatch(1);
         // 计时
         long time = System.currentTimeMillis();
 
-        // 启动工厂
-        for (String ip : ips) {
-            // 建立前往矿洞的路线
-            factory.start(ip);
-        }
+        new RemoteMiningFactory(RemoteMiningFactory.TUB_TYPE_HTTPS)
+                .start(mIPs)
+                .subscribe(new FlowableSubscriber<RemoteHostInfo>() {
+                    @Override
+                    public void onSubscribe(Subscription s) {
+                        s.request(1);
+                        mSubscription = s;
+                    }
+
+                    @Override
+                    public void onNext(RemoteHostInfo remoteHostInfo) {
+                        System.out.println(remoteHostInfo);
+                        mMineralList.add(remoteHostInfo);
+                        mSubscription.request(1);
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                        t.printStackTrace();
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        /// ---------------- 统计区域 ---------------- ///
+                        // 统计有效矿洞
+                        long surviveCount = mMineralList.parallelStream()
+                                .filter(RemoteHostInfo::isNotEmpty)
+                                .count();
+
+                        /// ---------------- 输出区域 ---------------- ///
+                        // 提取有效，并过滤的矿洞信息
+                        List<RemoteHostInfo> effectiveList = mMineralList.parallelStream()
+                                .filter(RemoteHostInfo::isNotEmpty)
+                                .filter(remoteHostInfo ->
+                                        mFilterTarget == null ||
+                                                mFilterTarget.isEmpty() ||
+                                                remoteHostInfo.getName().equals(mFilterTarget))
+                                .collect(Collectors.toList());
+                        // 打印清单
+                        if (mOutputPath != null && !mOutputPath.isEmpty()) {
+                            File outputFile = new File(mOutputPath);
+                            try {
+                                FileWriter fileWriter = new FileWriter(outputFile);
+                                BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+                                effectiveList.forEach(remoteHostInfo -> {
+                                    try {
+                                        bufferedWriter.write(remoteHostInfo.toString());
+                                        bufferedWriter.newLine();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                });
+                                bufferedWriter.flush();
+                                bufferedWriter.close();
+                                fileWriter.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+                            if (outputFile.exists()) {
+                                System.out.println("清单已导出：" + outputFile.getPath());
+                            }
+                        } else {
+                            effectiveList.parallelStream()
+                                    .forEach(System.out::println);
+                        }
+
+                        // 打印任务统计
+                        System.out.println(
+                                "矿洞总数：" + mMineralList.size() +
+                                        "，有产出矿洞总数：" + surviveCount +
+                                        "，过滤 [" + mFilterTarget + "] 后总数：" + effectiveList.size());
+
+                        mCountDownLatch.countDown();
+                    }
+                }); // 仓库
+
+        mCountDownLatch.await();
 
         long diffTime = System.currentTimeMillis() - time;
         System.out.println("总耗时：" + diffTime + " ms");
-
-        // 读取仓存
-        List<RemoteHostInfo> list = factory.viewWarehouse();
-        /// ---------------- 统计区域 ---------------- ///
-        // 统计有效矿洞
-        long surviveCount = list.parallelStream()
-                .filter(RemoteHostInfo::isNotEmpty)
-                .count();
-
-        /// ---------------- 输出区域 ---------------- ///
-        // 提取有效，并过滤的矿洞信息
-        String finalFilterTarget = filterTarget;
-        List<RemoteHostInfo> effectiveList = list.parallelStream()
-                .filter(RemoteHostInfo::isNotEmpty)
-                .filter(remoteHostInfo ->
-                        finalFilterTarget == null ||
-                                finalFilterTarget.equals("") ||
-                                remoteHostInfo.getName().equals(finalFilterTarget))
-                .collect(Collectors.toList());
-        // 打印清单
-        if (outputPath != null) {
-            File outputFile = new File(outputPath);
-            FileWriter fileWriter = new FileWriter(outputFile);
-            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-            effectiveList.forEach(remoteHostInfo -> {
-                try {
-                    bufferedWriter.write(remoteHostInfo.toString());
-                    bufferedWriter.newLine();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-            bufferedWriter.flush();
-            bufferedWriter.close();
-            fileWriter.close();
-
-            if (outputFile.exists()) {
-                System.out.println("清单已导出：" + outputFile.getPath());
-            }
-        } else {
-            effectiveList.parallelStream()
-                    .forEach(System.out::println);
-        }
-
-        // 打印任务统计
-        System.out.println(
-                "矿洞总数：" + list.size() +
-                "，有产出矿洞总数：" + surviveCount +
-                "，过滤 [" + filterTarget + "] 后总数：" + effectiveList.size());
-
-        // 关闭工厂
-        factory.shutdown();
     }
 
     private static String printHelp() {
