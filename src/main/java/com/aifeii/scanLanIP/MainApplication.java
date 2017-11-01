@@ -117,6 +117,7 @@ public class MainApplication {
                     @Override
                     public void onError(Throwable t) {
                         t.printStackTrace();
+                        mCountDownLatch.countDown();
                     }
 
                     @Override
