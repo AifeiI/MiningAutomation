@@ -105,11 +105,21 @@ public abstract class BaseMiningFactory<T extends Mineral> implements MiningFact
         /// ---------------- 开始调度 ---------------- ///
         // 生成调度清单
         if (type == 0) {
-            String p = ipNum[0] + "." + ipNum[1] + "." + ipNum[2] + ".";
+            ipNum[3]++;
+            for (int i = 0; i < count; i++) {
+                String p = ipNum[0] + "." + ipNum[1] + "." + ipNum[2] + "." + ipNum[3];
 
-            for (int i = ipNum[3]; i < count + 1; i++) {
                 // 提交调度任务
-                tubCenter.submit(new AssemblyLine<>(p + i, tub, truck));
+                tubCenter.submit(new AssemblyLine<>(p, tub, truck));
+
+                ipNum[3]++;
+                if (ipNum[3] == 256) {
+                    ipNum[3] = 0;
+                    ipNum[2]++;
+                    if (ipNum[2] == 256) {
+                        break;
+                    }
+                }
             }
 
             // 监听是否全部矿洞都已挖取
