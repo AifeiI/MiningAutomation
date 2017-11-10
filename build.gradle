@@ -1,4 +1,8 @@
 apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'application'
+
+mainClassName = "com.aifeii.scanLanIP.MainApplication"
 
 group 'com.aifeii'
 version '1.0-SNAPSHOT'
@@ -7,8 +11,13 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 jar {
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
     manifest {
         attributes 'Main-Class': 'com.aifeii.scanLanIP.MainApplication'
+        attributes('Implementation-Title': project.name,
+                'Implementation-Version': project.version)
     }
 }
 

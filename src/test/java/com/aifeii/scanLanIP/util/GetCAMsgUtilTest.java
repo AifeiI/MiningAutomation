@@ -11,14 +11,14 @@ import static org.junit.Assert.*;
 public class GetCAMsgUtilTest {
     @Test
     public void getMsgFromSSLSocket() throws Exception {
-        String ca = GetCAMsgUtil.getInstance().getMsgFromSSLSocket("www.google.com");
+        String ca = GetCAMsgUtil.getInstance().getMsgFromSSLSocket("www.baidu.com");
         System.out.println("ca: " + ca);
         assertNotNull(ca);
     }
 
     @Test
     public void getMsgFromHttps() throws Exception {
-        String ca = GetCAMsgUtil.getInstance().getMsgFromHttps("www.google.com");
+        String ca = GetCAMsgUtil.getInstance().getMsgFromHttps("www.baidu.com");
         System.out.println("ca: " + ca);
         assertNotNull(ca);
     }
